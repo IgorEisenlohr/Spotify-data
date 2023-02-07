@@ -27,14 +27,16 @@ def app_layout():
         st.header("Perfil de músicas do usuário (2022-2023)")
         st.write("Selecione o artista para saber informações detalhadas")
 
-    artista = st.selectbox('Selecione o artista: ', options=data.artistName.unique())
+    options = list(data.artistName.unique())
+    default_option  = "Post Malone"
+    artista = st.selectbox('Selecione o artista: ', options= options, index=options.index(default_option))
 
     col1, col2 = st.columns(2)
     with col1:
         group_artist = data.groupby('artistName').hrPlayed.sum().reset_index().query(f'artistName == "{artista}"')
-        horas_artista_plot = px.bar(group_artist, x='hrPlayed', y='artistName', color_discrete_sequence=["#1DB954"])
+        horas_artista_plot = px.bar(group_artist, x='hrPlayed', y='artistName', color_discrete_sequence=["#1DB954"], title=f'Total de horas')
         horas_artista_plot.update_traces(textposition='inside')
-        horas_artista_plot.update_layout(xaxis_title="Total de horas",
+        horas_artista_plot.update_layout(xaxis_title="",
                                         yaxis_title="",
                                         xaxis=dict(showticklabels=False), 
                                         height=300)
@@ -43,8 +45,9 @@ def app_layout():
     with col2:
         group_artista_track = data.groupby(['artistName', 'trackName']).hrPlayed.sum().reset_index()
         group_artista_track_filtered = group_artista_track.query(f'artistName == "{artista}"').sort_values(by='hrPlayed',ascending=True).query('hrPlayed > 1')
-        group_artista_track_plot = px.bar(group_artista_track_filtered, y='trackName', x='hrPlayed', color_discrete_sequence=["#1DB954"])
-        group_artista_track_plot.update_layout(xaxis_title="Total de horas",
+        group_artista_track_plot = px.bar(group_artista_track_filtered, y='trackName', x='hrPlayed', color_discrete_sequence=["#1DB954"],
+         title=f'TOP músicas escutadas do artista {artista}')
+        group_artista_track_plot.update_layout(xaxis_title="",
                                                  yaxis_title="",
                                                  xaxis=dict(showticklabels=False),
                                                  height=400)
@@ -52,7 +55,11 @@ def app_layout():
 
     group_date = data.groupby([data.date.dt.month, 'artistName']).hrPlayed.sum().reset_index().query(f'artistName == "{artista}"')
     group_date_plot = px.line(group_date, x='date', y='hrPlayed', color_discrete_sequence=["#1DB954"])
-    group_date_plot.update_layout(width=1920)
+    group_date_plot.update_layout(xaxis_title="",
+                                yaxis_title="",
+                                xaxis=dict(tickvals=np.arange(1,13),ticktext=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'], showgrid=False),
+                                yaxis = dict(showgrid=False),
+                                width=1450)
     st.plotly_chart(group_date_plot)
 
 if __name__ == '__main__':
